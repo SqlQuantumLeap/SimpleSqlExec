@@ -28,3 +28,4 @@ Eventually **SimpleSqlExec** will allow for options such as:
 * `Transaction Binding`
 
 
+Please see the [Wiki](wiki) for additional details.
