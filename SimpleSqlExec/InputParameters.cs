@@ -30,6 +30,7 @@ namespace SimpleSqlExec
          * -M MultiSubnet Failover
          * -o "Output file"
          * -s "Column separator"
+         * -a "Packet size"
          * 
          * -an "Application name"
          * -cs "Connection string"
@@ -156,12 +157,21 @@ namespace SimpleSqlExec
             }
         }
 
-        private string _ColumnSeparator = String.Empty;
+        private string _ColumnSeparator = " "; // SQLCMD default
         internal string ColumnSeparator
         {
             get
             {
                 return this._ColumnSeparator;
+            }
+        }
+
+        private UInt16 _PacketSize = 4096;
+        internal UInt16 PacketSize
+        {
+            get
+            {
+                return this._PacketSize;
             }
         }
 
@@ -269,19 +279,19 @@ namespace SimpleSqlExec
 					case "-l":
 					case "/l":
 						Int32.TryParse(args[++_Index], out this._LoginTimeout);
-                        if (this._LoginTimeout < 0)
+                        if (this.LoginTimeout < 0)
                         {
                             throw new ArgumentException(String.Concat("Invalid Connect / Login Timeout value ",
-                                _LoginTimeout, "; the value must be >= 0."), "-l");
+                                this.LoginTimeout, "; the value must be >= 0."), "-l");
                         }
 						break;
 					case "-t":
 					case "/t":
                         Int32.TryParse(args[++_Index], out this._QueryTimeout);
-                        if (this._QueryTimeout < 0)
+                        if (this.QueryTimeout < 0)
                         {
                             throw new ArgumentException(String.Concat("Invalid Query / Command Timeout value ",
-                                _QueryTimeout, "; the value must be >= 0."), "-t");
+                                this.QueryTimeout, "; the value must be >= 0."), "-t");
                         }
                         break;
                     case "-K":
@@ -308,6 +318,15 @@ namespace SimpleSqlExec
                     case "/s":
                         this._ColumnSeparator = args[++_Index];
                         break;
+                    case "-a":
+                    case "/a":
+                        UInt16.TryParse(args[++_Index], out this._PacketSize);
+                        if (this.PacketSize < 512)
+                        {
+                            throw new ArgumentException(String.Concat("Invalid PacketSize value ",
+                                this.PacketSize, "; the value must be between 512 and 32767."), "-a");
+                        }
+						break;
 
                     case "-an":
                     case "/an":
