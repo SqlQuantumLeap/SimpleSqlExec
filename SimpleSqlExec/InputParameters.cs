@@ -5,6 +5,7 @@
  */
 using System;
 using System.Data.SqlClient; // ApplicationIntent enum
+using System.IO;
 
 
 namespace SimpleSqlExec
@@ -24,7 +25,7 @@ namespace SimpleSqlExec
          * -Q "Query"
          * -l "Login (i.e. connection) timeout"
          * -t "Query (i.e. command) timeout"
-         * -K "Application intent"
+         * -K "Application intent" (ReadOnly / ReadWrite)
          * -N Encrypt Connection
          * -C Trust Server Certificate
          * -M MultiSubnet Failover
@@ -37,6 +38,7 @@ namespace SimpleSqlExec
          * -ra "Rows Affected file path {or environment variable name?}"
          * -mf "Messages File"
          * -ef "Error File"
+         * -oh "Output file handling" (OverWrite, Append, or Error)
          * -? / -help  Display usage
          */
 
@@ -229,6 +231,16 @@ namespace SimpleSqlExec
             }
         }
 
+        private bool _OutputFileAppend = false; // SQLCMD default and no option for "true"
+        internal bool OutputFileAppend
+        {
+            get
+            {
+                return this._OutputFileAppend;
+            }
+        }
+        private bool _CheckForExistingOutputFile = false; // true if "-oh Error" is passed in
+
 		private bool _DisplayUsage = false;
 		internal bool DisplayUsage
 		{
@@ -281,7 +293,7 @@ namespace SimpleSqlExec
 						Int32.TryParse(args[++_Index], out this._LoginTimeout);
                         if (this.LoginTimeout < 0)
                         {
-                            throw new ArgumentException(String.Concat("Invalid Connect / Login Timeout value ",
+                            throw new ArgumentException(String.Concat("Invalid Connect / Login Timeout value: ",
                                 this.LoginTimeout, "; the value must be >= 0."), "-l");
                         }
 						break;
@@ -290,7 +302,7 @@ namespace SimpleSqlExec
                         Int32.TryParse(args[++_Index], out this._QueryTimeout);
                         if (this.QueryTimeout < 0)
                         {
-                            throw new ArgumentException(String.Concat("Invalid Query / Command Timeout value ",
+                            throw new ArgumentException(String.Concat("Invalid Query / Command Timeout value: ",
                                 this.QueryTimeout, "; the value must be >= 0."), "-t");
                         }
                         break;
@@ -312,7 +324,7 @@ namespace SimpleSqlExec
                         break;
 					case "-o":
 					case "/o":
-						this._OutputFile = args[++_Index];
+						this._OutputFile = args[++_Index].Trim();
 						break;
                     case "-s":
                     case "/s":
@@ -323,7 +335,7 @@ namespace SimpleSqlExec
                         UInt16.TryParse(args[++_Index], out this._PacketSize);
                         if (this.PacketSize < 512)
                         {
-                            throw new ArgumentException(String.Concat("Invalid PacketSize value ",
+                            throw new ArgumentException(String.Concat("Invalid PacketSize value: ",
                                 this.PacketSize, "; the value must be between 512 and 32767."), "-a");
                         }
 						break;
@@ -352,6 +364,26 @@ namespace SimpleSqlExec
                     case "/ef":
                         this._ErrorFile = args[++_Index];
                         break;
+                    case "-oh":
+                    case "/oh":
+                        switch (args[++_Index].ToUpperInvariant())
+                        {
+                            case "OVERWRITE":
+                                this._OutputFileAppend = false;
+                                break;
+                            case "APPEND":
+                                this._OutputFileAppend = true;
+                                break;
+                            case "ERROR":
+                                // The existence check cannot be done immediately due to no enforced
+                                // order of input parameters: "-o" might not have been parsed yet.
+                                this._CheckForExistingOutputFile = true;
+                                break;
+                            default:
+                                throw new ArgumentException(String.Concat("Invalid OutputFileHandling value: ",
+                                    args[_Index], ".\nValid values are: Overwrite, Append, and Error."), "-oh");
+                        }
+                        break;
                     case "-help":
 					case "-?":
 					case "/help":
@@ -360,10 +392,23 @@ namespace SimpleSqlExec
 						break;
 					default:
 						throw new ArgumentException("Invalid parameter specified.", args[_Index]);
-				}
-			}
-		}
+                } // switch (args[_Index])
+            } // for (int _Index = 0; _Index < args.Length; _Index++)
 
+            if (this._CheckForExistingOutputFile && this.OutputFile != String.Empty)
+            {
+                CheckForExistingOutputFile(this.OutputFile);
+            }
+        } // public InputParameters(string[] args)
 
+        private static void CheckForExistingOutputFile(string OutputFile)
+        {
+            if (File.Exists(OutputFile))
+            {
+                throw new IOException("The results output file:\n\"" + OutputFile + "\"\nalready exists.");
+            }
+
+            return;
+        }
 	}
 }

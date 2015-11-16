@@ -43,7 +43,8 @@ namespace SimpleSqlExec
                         }
                         else
                         {
-                            _Output = new OutputFile(InputParams.OutputFile, false);
+                            _Output = new OutputFile(InputParams.OutputFile,
+                                InputParams.OutputFileAppend);
                         }
 
 
