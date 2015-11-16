@@ -33,6 +33,7 @@ namespace SimpleSqlExec
             _ConnectionString.MultiSubnetFailover = InputParams.MultiSubnetFailover;
             _ConnectionString.TrustServerCertificate = InputParams.TrustServerCertificate;
             _ConnectionString.WorkstationID = InputParams.WorkstationName;
+            _ConnectionString.PacketSize = InputParams.PacketSize;
 
             if (InputParams.UserID != String.Empty)
             {
