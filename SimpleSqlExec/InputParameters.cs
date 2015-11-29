@@ -395,11 +395,24 @@ namespace SimpleSqlExec
                 } // switch (args[_Index])
             } // for (int _Index = 0; _Index < args.Length; _Index++)
 
+            ValidateParameters();
+        } // public InputParameters(string[] args)
+
+
+        private void ValidateParameters()
+        {
+            if (this.Query == String.Empty)
+            {
+                throw new ArgumentException("No query has been specified.\nPlease use the -Q switch to pass in a query batch.");
+            }
+
             if (this._CheckForExistingOutputFile && this.OutputFile != String.Empty)
             {
                 CheckForExistingOutputFile(this.OutputFile);
             }
-        } // public InputParameters(string[] args)
+
+            return;
+        }
 
         private static void CheckForExistingOutputFile(string OutputFile)
         {

@@ -50,6 +50,8 @@ namespace SimpleSqlExec
 
                         do
                         {
+                            _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
+
                             if (_Reader.HasRows)
                             {
                                 _ResultRow = new object[_Reader.FieldCount];

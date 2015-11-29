@@ -20,7 +20,7 @@ namespace SimpleSqlExec
 
                 return _ConnectionString.ConnectionString;
             }
-
+            
             _ConnectionString = new SqlConnectionStringBuilder();
 
             _ConnectionString.ApplicationIntent = InputParams.AppIntent;

@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Data.SqlClient;
 using System.IO;
-//using System.Text;
+using System.Text;
 
 namespace SimpleSqlExec
 {
@@ -9,6 +10,30 @@ namespace SimpleSqlExec
         abstract internal void Send(string Output);
 
         abstract internal void Dispose();
+
+        public string GetHeader(SqlDataReader Reader, string ColumnSeparator)
+        {
+            if (Reader.FieldCount == 0)
+            {
+                return String.Empty;
+            }
+
+            if (Reader.FieldCount == 1)
+            {
+                return Reader.GetName(0);
+            }
+
+            StringBuilder _Header = new StringBuilder(200);
+            _Header.Append(Reader.GetName(0));
+
+            for (int _Index = 1; _Index < Reader.FieldCount; _Index++)
+            {
+                _Header.Append(ColumnSeparator);
+                _Header.Append(Reader.GetName(_Index));
+            }
+
+            return _Header.ToString();
+        }
     }
 
     internal class OutputDisplay : ResultsOutput

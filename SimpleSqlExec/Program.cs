@@ -63,7 +63,7 @@ namespace SimpleSqlExec
             }
             catch (SqlException _SqlException)
             {
-                Display.Error(String.Concat(_SqlException.Message, "\n",
+                Display.Error(String.Concat(_SqlException.Message, "\n\n",
                     "Error Number:    ", _SqlException.Number, "\n",
                     "Error Level:     ", _SqlException.Class, "\n",
                     "Error State:     ", _SqlException.State, "\n",

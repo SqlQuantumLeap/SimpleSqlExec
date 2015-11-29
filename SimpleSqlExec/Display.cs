@@ -29,10 +29,37 @@ namespace SimpleSqlExec
             Console.WriteLine(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(3));
             Console.WriteLine("Copyright (c) 2015 Sql Quantum Leap. All rights reserved.\n");
 
-            Console.WriteLine("Usage: SimpleSqlExec");
-            Console.WriteLine("\t-name \"variable name\"");
-            Console.WriteLine("\t[ -machine ]           (Default is to check User scoped variables)");
-            Console.WriteLine("\t[ -? / -help ]         (Display this usage information)\n");
+            Console.WriteLine("Usage: SimpleSqlExec\n");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("\tFunctionality mirroring SQLCMD behavior:");
+            Console.ResetColor();
+            Console.WriteLine("\t-U \"User ID\" (if not present then -E / trusted_connection is used)");
+            Console.WriteLine("\t-P \"Password\"");
+            Console.WriteLine("\t-S \"Server\"");
+            Console.WriteLine("\t-d \"Database name\"");
+            Console.WriteLine("\t-H \"Workstation name\"");
+            Console.WriteLine("\t-Q \"Query\"");
+            Console.WriteLine("\t-l \"Login (i.e. connection) timeout\" (default: \"15\")");
+            Console.WriteLine("\t-t \"Query (i.e. command) timeout\" (default: \"30\")");
+            Console.WriteLine("\t-K \"Application intent\"");
+            Console.WriteLine("\t-N Encrypt Connection (default: false)");
+            Console.WriteLine("\t-C Trust Server Certificate (default: false)");
+            Console.WriteLine("\t-M MultiSubnet Failover (default: false)");
+            Console.WriteLine("\t-o \"Output file\"");
+            Console.WriteLine("\t-s \"Column separator\" (default: \" \")");
+            Console.WriteLine("\t-? / -help / (no command-line options) Display usage");
+            Console.WriteLine("");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("\tFunctionality unique to SimpleSqlExec:");
+            Console.ResetColor();
+            Console.WriteLine("\t-an \"Application name\" (default: \"Simple SQL Exec\")");
+            Console.WriteLine("\t-cs \"Connection string\"");
+            Console.WriteLine("\t-ra \"Rows Affected file path or User environment variable name\"");
+            Console.WriteLine("\t-mf \"Messages File\"");
+            Console.WriteLine("\t-oh \"Output file handling\" (OverWrite, Append, or Error)");
+            Console.WriteLine("");            
 
             Console.WriteLine("Notes:");
             Console.WriteLine("\tCommand-line option names are case-sensitive.");
