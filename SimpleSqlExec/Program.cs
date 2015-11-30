@@ -6,11 +6,12 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 
 
 namespace SimpleSqlExec
 {
-    class Program
+    partial class Program
     {
         static int Main(string[] args)
         {
@@ -24,7 +25,7 @@ namespace SimpleSqlExec
             }
             catch(ArgumentException _ArgException)
             {
-                Display.Error(_ArgException.Message + " (" + _ArgException.ParamName + ")");
+                Display.Error(_ArgException.Message);// + " (" + _ArgException.ParamName + ")");
 
                 return 1;
             }
@@ -58,23 +59,11 @@ namespace SimpleSqlExec
 
             try
             {
-                using (SqlConnection _Connection = new SqlConnection(_ConnectionString))
-                {
-                    using (SqlCommand _Command = new SqlCommand(_InputParams.Query))
-                    {
-                        _Command.Connection = _Connection;
-                        _Command.CommandTimeout = _InputParams.QueryTimeout;
-
-
-                        _Connection.Open();
-
-                        _Command.ExecuteNonQuery();
-                    }
-                }
+                ProcessQueries(_InputParams, _ConnectionString);
             }
             catch (SqlException _SqlException)
             {
-                Display.Error(String.Concat(_SqlException.Message, "\n",
+                Display.Error(String.Concat(_SqlException.Message, "\n\n",
                     "Error Number:    ", _SqlException.Number, "\n",
                     "Error Level:     ", _SqlException.Class, "\n",
                     "Error State:     ", _SqlException.State, "\n",
@@ -91,6 +80,47 @@ namespace SimpleSqlExec
 
                 return 5;
             }
+
+
+            try
+            {
+                if (_InputParams.MessagesFile != String.Empty)
+                {
+                    File.WriteAllText(_InputParams.MessagesFile,
+                        Capture._Messages.ToString());
+                }
+            }
+            catch (Exception _Exception)
+            {
+                Display.Error(_Exception.Message);
+
+                return 6;
+            }
+
+
+            try
+            {
+                if (_InputParams.RowsAffectedDestination != String.Empty)
+                {
+                    if (_InputParams.RowsAffectedDestination.LastIndexOf(".") > -1)
+                    {
+                        File.WriteAllText(_InputParams.RowsAffectedDestination,
+                            Capture._RowsAffected.ToString());
+                    }
+                    else
+                    {
+                        Environment.SetEnvironmentVariable(_InputParams.RowsAffectedDestination,
+                            Capture._RowsAffected.ToString(), EnvironmentVariableTarget.User);
+                    }
+                }
+            }
+            catch (Exception _Exception)
+            {
+                Display.Error(_Exception.Message);
+
+                return 7;
+            }
+
 
             return 0;
         }
