@@ -6,6 +6,7 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 
 
 namespace SimpleSqlExec
@@ -18,7 +19,16 @@ namespace SimpleSqlExec
 
             using (SqlConnection _Connection = new SqlConnection(ConnectionString))
             {
-                _Connection.InfoMessage += Capture.InfoMessageHandler;
+                if (InputParams.MessagesFile != String.Empty)
+                {
+                    // clear out existing file
+                    File.Delete(InputParams.MessagesFile);
+
+                    Capture.MessagesFile = InputParams.MessagesFile;
+                    Capture.OutputEncoding = InputParams.OutputEncoding;
+
+                    _Connection.InfoMessage += Capture.InfoMessageHandler;
+                }
                 _Connection.FireInfoMessageEventOnUserErrors = false;
 
                 using (SqlCommand _Command = new SqlCommand(InputParams.Query, _Connection))
@@ -44,7 +54,7 @@ namespace SimpleSqlExec
                         else
                         {
                             _Output = new OutputFile(InputParams.OutputFile,
-                                InputParams.OutputFileAppend);
+                                InputParams.OutputFileAppend, InputParams.OutputEncoding);
                         }
 
 

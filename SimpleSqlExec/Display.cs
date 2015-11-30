@@ -48,6 +48,9 @@ namespace SimpleSqlExec
             Console.WriteLine("\t-M MultiSubnet Failover (default: false)");
             Console.WriteLine("\t-o \"Output file\"");
             Console.WriteLine("\t-s \"Column separator\" (default: \" \")");
+            Console.WriteLine("\t-a \"packet size\" (range: 512 - 32767; default: \"4096\" {default for .NET SqlConnection = \"8000\"!})");
+            Console.WriteLine("\t-u Unicode (UTF-16 LE) Output file and Messages File");
+
             Console.WriteLine("\t-? / -help / (no command-line options) Display usage");
             Console.WriteLine("");
 

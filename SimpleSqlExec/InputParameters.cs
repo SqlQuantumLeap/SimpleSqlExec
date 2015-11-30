@@ -6,6 +6,7 @@
 using System;
 using System.Data.SqlClient; // ApplicationIntent enum
 using System.IO;
+using System.Text; // Encoding
 
 
 namespace SimpleSqlExec
@@ -16,12 +17,11 @@ namespace SimpleSqlExec
          * SqlConnection.ConnectionString ( https://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlconnection.connectionstring.aspx )
          * SqlCommand.CommandTimeout ( https://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlcommand.commandtimeout.aspx )
          * 
-         * -U "User ID"
+         * -U "User ID" (if not present then -E / trusted_connection is used)
          * -P "Password"
          * -S "Server"
          * -d "Database name"
          * -H "Workstation name"
-         * (-E trusted connection -- assumed true if -U and -P are not present)
          * -Q "Query"
          * -l "Login (i.e. connection) timeout"
          * -t "Query (i.e. command) timeout"
@@ -31,7 +31,8 @@ namespace SimpleSqlExec
          * -M MultiSubnet Failover
          * -o "Output file"
          * -s "Column separator"
-         * -a "Packet size"
+         * -a "Packet size" (range: 512 - 32767; default: "4096" {default for .NET SqlConnection = "8000"!})
+         * -u Unicode (UTF-16 LE) Output file and Messages File
          * 
          * -an "Application name"
          * -cs "Connection string"
@@ -168,7 +169,7 @@ namespace SimpleSqlExec
             }
         }
 
-        private UInt16 _PacketSize = 4096;
+        private UInt16 _PacketSize = 4096; // SQLCMD default; .NET default is 8000; range = 512 - 32767
         internal UInt16 PacketSize
         {
             get
@@ -176,6 +177,17 @@ namespace SimpleSqlExec
                 return this._PacketSize;
             }
         }
+
+        private Encoding _OutputEncoding = Console.OutputEncoding; // SQLCMD default
+        internal Encoding OutputEncoding
+        {
+            get
+            {
+                return this._OutputEncoding;
+            }
+        }
+
+
 
         private string _ApplicationName = "Simple SQL Exec";
         internal string ApplicationName
@@ -339,6 +351,10 @@ namespace SimpleSqlExec
                                 this.PacketSize, "; the value must be between 512 and 32767."), "-a");
                         }
 						break;
+                    case "-u":
+                    case "/u":
+                        this._OutputEncoding = new UnicodeEncoding();
+                        break;
 
                     case "-an":
                     case "/an":
@@ -358,7 +374,7 @@ namespace SimpleSqlExec
                         break;
                     case "-mf":
                     case "/mf":
-                        this._MessagesFile = args[++_Index];
+                        this._MessagesFile = args[++_Index].Trim();
                         break;
                     case "-ef":
                     case "/ef":
