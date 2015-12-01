@@ -57,6 +57,7 @@ namespace SimpleSqlExec
                 return 3;
             }
 
+
             try
             {
                 ProcessQueries(_InputParams, _ConnectionString);
@@ -82,20 +83,20 @@ namespace SimpleSqlExec
             }
 
 
-            try
-            {
-                if (_InputParams.MessagesFile != String.Empty)
-                {
-                    File.WriteAllText(_InputParams.MessagesFile,
-                        Capture._Messages.ToString());
-                }
-            }
-            catch (Exception _Exception)
-            {
-                Display.Error(_Exception.Message);
+            //try
+            //{
+            //    if (_InputParams.MessagesFile != String.Empty)
+            //    {
+            //        File.WriteAllText(_InputParams.MessagesFile,
+            //            Capture._Messages.ToString());
+            //    }
+            //}
+            //catch (Exception _Exception)
+            //{
+            //    Display.Error(_Exception.Message);
 
-                return 6;
-            }
+            //    return 6;
+            //}
 
 
             try

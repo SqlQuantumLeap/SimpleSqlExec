@@ -58,13 +58,13 @@ namespace SimpleSqlExec
         private string _FileName;
         private bool _Append;
 
-        public OutputFile(string FileName, bool Append)
+        public OutputFile(string FileName, bool Append, Encoding OutputEncoding)
         {
             this._FileName = FileName;
             this._Append = Append;
 
             //_OutputFile = new FileStream(InputParams.OutputFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-            this._OutputFile = new StreamWriter(FileName, Append); // System.Text.Encoding.
+            this._OutputFile = new StreamWriter(FileName, Append, OutputEncoding);
 
             return;
         }
