@@ -253,18 +253,18 @@ namespace SimpleSqlExec
         }
         private bool _CheckForExistingOutputFile = false; // true if "-oh Error" is passed in
 
-		private bool _DisplayUsage = false;
-		internal bool DisplayUsage
-		{
-			get
-			{
-				return this._DisplayUsage;
-			}
-		}
+        private bool _DisplayUsage = false;
+        internal bool DisplayUsage
+        {
+            get
+            {
+                return this._DisplayUsage;
+            }
+        }
 
 
         public InputParameters(string[] args)
-		{
+        {
             if (args.Length == 0)
             {
                 _DisplayUsage = true;
@@ -447,5 +447,5 @@ namespace SimpleSqlExec
 
             return;
         }
-	}
+    }
 }
