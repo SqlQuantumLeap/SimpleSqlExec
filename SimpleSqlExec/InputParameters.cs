@@ -45,12 +45,12 @@ namespace SimpleSqlExec
 
         private string _UserID = String.Empty;
         internal string UserID
-		{
-			get
-			{
+        {
+            get
+            {
                 return this._UserID;
-			}
-		}
+            }
+        }
 
         private string _Password = String.Empty;
         internal string Password
