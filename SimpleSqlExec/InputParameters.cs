@@ -282,7 +282,12 @@ namespace SimpleSqlExec
 						break;
 					case "-P":
 					case "/P":
-						this._Password = args[++_Index];
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._Password = args[++_Index];
+                        }
 						break;
 					case "-S":
 					case "/S":
@@ -411,7 +416,10 @@ namespace SimpleSqlExec
                 } // switch (args[_Index])
             } // for (int _Index = 0; _Index < args.Length; _Index++)
 
-            ValidateParameters();
+            if (!this.DisplayUsage)
+            {
+                ValidateParameters();
+            }
         } // public InputParameters(string[] args)
 
 

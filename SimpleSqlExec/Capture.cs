@@ -26,7 +26,7 @@ namespace SimpleSqlExec
         {
             //_Messages.AppendLine(EventInfo.Message);
 
-            File.AppendAllText(MessagesFile, EventInfo.Message, OutputEncoding);
+            File.AppendAllText(MessagesFile, EventInfo.Message + "\n", OutputEncoding);
 
             return;
         }
