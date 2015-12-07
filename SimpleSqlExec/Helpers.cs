@@ -48,5 +48,18 @@ namespace SimpleSqlExec
 
             return _ConnectionString.ConnectionString;
         }
+    
+        internal static ResultsOutput GetResultsOutput(InputParameters InputParams)
+        {
+            if (InputParams.OutputFile == String.Empty)
+            {
+                return new OutputDisplay();
+            }
+            else
+            {
+                return new OutputFile(InputParams.OutputFile,
+                    InputParams.OutputFileAppend, InputParams.OutputEncoding);
+            }
+        }
     }
 }

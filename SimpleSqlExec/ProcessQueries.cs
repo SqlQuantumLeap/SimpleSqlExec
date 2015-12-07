@@ -31,60 +31,63 @@ namespace SimpleSqlExec
                 }
                 _Connection.FireInfoMessageEventOnUserErrors = false;
 
-                using (SqlCommand _Command = new SqlCommand(InputParams.Query, _Connection))
+                using (SqlCommand _Command = _Connection.CreateCommand())
                 {
+                    _Command.CommandType = CommandType.Text;
                     _Command.CommandTimeout = InputParams.QueryTimeout;
+
                     if (InputParams.RowsAffectedDestination != String.Empty)
                     {
                         _Command.StatementCompleted += Capture.StatementCompletedHandler;
                     }
 
+                    ResultsOutput _Output = null;
+
                     _Connection.Open();
 
-                    using (SqlDataReader _Reader = _Command.ExecuteReader())
-                    {
-                        object[] _ResultRow;
-                        string _OutputRow;
+                    _Command.CommandText = InputParams.Query; // replace with QueryBatches.NextBatch();
 
-                        ResultsOutput _Output;
-                        if (InputParams.OutputFile == String.Empty)
+                    { // loop through files / batches
+
+                        using (SqlDataReader _Reader = _Command.ExecuteReader())
                         {
-                            _Output = new OutputDisplay();
-                        }
-                        else
-                        {
-                            _Output = new OutputFile(InputParams.OutputFile,
-                                InputParams.OutputFileAppend, InputParams.OutputEncoding);
-                        }
+                            object[] _ResultRow;
+                            string _OutputRow;
 
-
-                        do
-                        {
-                            _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
-
-                            if (_Reader.HasRows)
+                            if (_Output == null)
                             {
-                                _ResultRow = new object[_Reader.FieldCount];
-
-                                while (_Reader.Read())
-                                {
-                                    _Reader.GetValues(_ResultRow);
-                                    _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
-
-                                    _Output.Send(_OutputRow);
-                                }
-
-                                _ResultRow = null;
+                                _Output = Helpers.GetResultsOutput(InputParams);
                             }
-                        } while (_Reader.NextResult());
 
-                        if (_Output.GetType() == typeof(OutputFile))
-                        {
-                            _Output.Dispose();
-                        }
+
+                            do
+                            {
+                                _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
+
+                                if (_Reader.HasRows)
+                                {
+                                    _ResultRow = new object[_Reader.FieldCount];
+
+                                    while (_Reader.Read())
+                                    {
+                                        _Reader.GetValues(_ResultRow);
+                                        _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
+
+                                        _Output.Send(_OutputRow);
+                                    }
+
+                                    _ResultRow = null;
+                                }
+                            } while (_Reader.NextResult());
+
+                            if (_Output.GetType() == typeof(OutputFile))
+                            {
+                                _Output.Dispose();
+                            }
+                        } // using (SqlDataReader...
                     }
 
-                }
+                } // using (SqlCommand...
             }
 
             return;
