@@ -50,6 +50,7 @@
     <Compile Include="ProcessQueries.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryBatches.cs" />
     <Compile Include="ResultsOutput.cs" />
   </ItemGroup>
   <ItemGroup>

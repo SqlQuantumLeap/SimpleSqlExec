@@ -9,7 +9,6 @@ namespace SimpleSqlExec
     class Capture
     {
         internal static int _RowsAffected = 0;
-        //internal static StringBuilder _Messages = new StringBuilder(5000);
         public static string MessagesFile = String.Empty;
         public static Encoding OutputEncoding;
 
@@ -24,8 +23,6 @@ namespace SimpleSqlExec
         internal static void InfoMessageHandler(object Sender,
             SqlInfoMessageEventArgs EventInfo)
         {
-            //_Messages.AppendLine(EventInfo.Message);
-
             File.AppendAllText(MessagesFile, EventInfo.Message + "\n", OutputEncoding);
 
             return;

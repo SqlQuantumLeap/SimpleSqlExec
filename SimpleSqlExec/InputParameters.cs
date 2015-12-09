@@ -318,7 +318,7 @@ namespace SimpleSqlExec
                             && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
                             && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
                         {
-                            this._Query = args[++_Index];
+                            this._Query = args[++_Index].TrimEnd(null);
                         }
 						break;
 					case "-l":
@@ -465,7 +465,7 @@ namespace SimpleSqlExec
                 throw new ArgumentException("The -i and -Q switches are mutually exclusive.\nPlease specify only one of those.");
             }
 
-            if (this.InputFiles.Count == 0 &&  this.Query == String.Empty)
+            if (this.InputFiles.Count == 0 && this.Query == String.Empty)
             {
                 throw new ArgumentException("No query has been specified.\nPlease use the -Q switch to pass in a query batch\nor specify one or more files using the -i switch.");
             }
@@ -492,6 +492,11 @@ namespace SimpleSqlExec
                 }
             }
 
+            if (this.OutputFile != String.Empty)
+            {
+                CheckOutputFilePath(this.OutputFile);
+            }
+
             if (this._CheckForExistingOutputFile && this.OutputFile != String.Empty)
             {
                 CheckForExistingOutputFile(this.OutputFile);
@@ -505,6 +510,30 @@ namespace SimpleSqlExec
             if (File.Exists(OutputFile))
             {
                 throw new IOException("The results output file:\n\"" + OutputFile + "\"\nalready exists.");
+            }
+
+            return;
+        }
+
+        private static void CheckOutputFilePath(string OutputFile)
+        {
+            if (File.Exists(OutputFile))
+            {
+                // If the file already exists, open it for append but don't append anything (i.e. check for permissions)
+                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Open, FileAccess.Write, FileShare.Read))
+                {
+                    _CheckFile.Close();
+                }
+            }
+            else
+            {
+                // try to create the file. if successful, delete it.
+                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Create, FileAccess.Write, FileShare.Read))
+                {
+                    _CheckFile.Close();
+                }
+
+                File.Delete(OutputFile);
             }
 
             return;

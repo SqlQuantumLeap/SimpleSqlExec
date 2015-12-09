@@ -46,3 +46,4 @@ bin/
 obj/
 SimpleSqlExec/SimpleSqlExec.csproj.user
 Compiled/SimpleSqlExec.exe
+Compiled/messages.txt

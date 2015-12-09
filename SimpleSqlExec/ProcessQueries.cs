@@ -41,54 +41,63 @@ namespace SimpleSqlExec
                         _Command.StatementCompleted += Capture.StatementCompletedHandler;
                     }
 
-                    ResultsOutput _Output = null;
-
                     _Connection.Open();
 
-                    _Command.CommandText = InputParams.Query; // replace with QueryBatches.NextBatch();
+                    ResultsOutput _Output = null;
+                    QueryBatches _Queries = null;
 
-                    { // loop through files / batches
+                    try
+                    {
+                        _Queries = new QueryBatches(InputParams);
+                        _Output = Helpers.GetResultsOutput(InputParams);
 
-                        using (SqlDataReader _Reader = _Command.ExecuteReader())
+                        while (_Queries.NextBatch())
                         {
-                            object[] _ResultRow;
-                            string _OutputRow;
+                            _Command.CommandText = _Queries.GetBatch();
 
-                            if (_Output == null)
+                            using (SqlDataReader _Reader = _Command.ExecuteReader())
                             {
-                                _Output = Helpers.GetResultsOutput(InputParams);
-                            }
+                                object[] _ResultRow;
+                                string _OutputRow;
 
 
-                            do
-                            {
-                                _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
-
-                                if (_Reader.HasRows)
+                                do
                                 {
-                                    _ResultRow = new object[_Reader.FieldCount];
+                                    _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
 
-                                    while (_Reader.Read())
+                                    if (_Reader.HasRows)
                                     {
-                                        _Reader.GetValues(_ResultRow);
-                                        _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
+                                        _ResultRow = new object[_Reader.FieldCount];
 
-                                        _Output.Send(_OutputRow);
+                                        while (_Reader.Read())
+                                        {
+                                            _Reader.GetValues(_ResultRow);
+                                            _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
+
+                                            _Output.Send(_OutputRow);
+                                        }
+
+                                        _ResultRow = null;
                                     }
-
-                                    _ResultRow = null;
-                                }
-                            } while (_Reader.NextResult());
-
-                            if (_Output.GetType() == typeof(OutputFile))
-                            {
-                                _Output.Dispose();
-                            }
-                        } // using (SqlDataReader...
+                                } while (_Reader.NextResult());
+                            } // using (SqlDataReader...
+                        } // while (_Queries.NextBatch())
+                    }
+                    //catch
+                    //{
+                    //    throw;
+                    //}
+                    finally
+                    {
+                        if (_Output.GetType() == typeof(OutputFile))
+                        {
+                            // Console.WriteLine("got called!"); // debug
+                            _Output.Dispose();
+                        }
                     }
 
                 } // using (SqlCommand...
-            }
+            } // using (SqlConnection
 
             return;
         }

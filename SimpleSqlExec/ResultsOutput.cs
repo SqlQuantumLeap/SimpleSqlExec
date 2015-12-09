@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * "Simple SQL Exec"
+ * Copyright (c) 2015 Sql Quantum Leap. All rights reserved.
+ * 
+ */
+using System;
 using System.Data.SqlClient;
 using System.IO;
 using System.Text;
