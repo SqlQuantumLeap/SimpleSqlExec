@@ -31,9 +31,11 @@ namespace SimpleSqlExec
                 }
                 _Connection.FireInfoMessageEventOnUserErrors = false;
 
-                using (SqlCommand _Command = new SqlCommand(InputParams.Query, _Connection))
+                using (SqlCommand _Command = _Connection.CreateCommand())
                 {
+                    _Command.CommandType = CommandType.Text;
                     _Command.CommandTimeout = InputParams.QueryTimeout;
+
                     if (InputParams.RowsAffectedDestination != String.Empty)
                     {
                         _Command.StatementCompleted += Capture.StatementCompletedHandler;
@@ -41,51 +43,61 @@ namespace SimpleSqlExec
 
                     _Connection.Open();
 
-                    using (SqlDataReader _Reader = _Command.ExecuteReader())
+                    ResultsOutput _Output = null;
+                    QueryBatches _Queries = null;
+
+                    try
                     {
-                        object[] _ResultRow;
-                        string _OutputRow;
+                        _Queries = new QueryBatches(InputParams);
+                        _Output = Helpers.GetResultsOutput(InputParams);
 
-                        ResultsOutput _Output;
-                        if (InputParams.OutputFile == String.Empty)
+                        while (_Queries.NextBatch())
                         {
-                            _Output = new OutputDisplay();
-                        }
-                        else
-                        {
-                            _Output = new OutputFile(InputParams.OutputFile,
-                                InputParams.OutputFileAppend, InputParams.OutputEncoding);
-                        }
+                            _Command.CommandText = _Queries.GetBatch();
 
-
-                        do
-                        {
-                            _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
-
-                            if (_Reader.HasRows)
+                            using (SqlDataReader _Reader = _Command.ExecuteReader())
                             {
-                                _ResultRow = new object[_Reader.FieldCount];
+                                object[] _ResultRow;
+                                string _OutputRow;
 
-                                while (_Reader.Read())
+
+                                do
                                 {
-                                    _Reader.GetValues(_ResultRow);
-                                    _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
+                                    _Output.Send(_Output.GetHeader(_Reader, InputParams.ColumnSeparator));
 
-                                    _Output.Send(_OutputRow);
-                                }
+                                    if (_Reader.HasRows)
+                                    {
+                                        _ResultRow = new object[_Reader.FieldCount];
 
-                                _ResultRow = null;
-                            }
-                        } while (_Reader.NextResult());
+                                        while (_Reader.Read())
+                                        {
+                                            _Reader.GetValues(_ResultRow);
+                                            _OutputRow = String.Join(InputParams.ColumnSeparator, _ResultRow);
 
+                                            _Output.Send(_OutputRow);
+                                        }
+
+                                        _ResultRow = null;
+                                    }
+                                } while (_Reader.NextResult());
+                            } // using (SqlDataReader...
+                        } // while (_Queries.NextBatch())
+                    }
+                    //catch
+                    //{
+                    //    throw;
+                    //}
+                    finally
+                    {
                         if (_Output.GetType() == typeof(OutputFile))
                         {
+                            // Console.WriteLine("got called!"); // debug
                             _Output.Dispose();
                         }
                     }
 
-                }
-            }
+                } // using (SqlCommand...
+            } // using (SqlConnection
 
             return;
         }

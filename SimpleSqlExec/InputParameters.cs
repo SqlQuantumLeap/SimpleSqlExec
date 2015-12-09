@@ -4,6 +4,7 @@
  * 
  */
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient; // ApplicationIntent enum
 using System.IO;
 using System.Text; // Encoding
@@ -33,6 +34,7 @@ namespace SimpleSqlExec
          * -s "Column separator"
          * -a "Packet size" (range: 512 - 32767; default: "4096" {default for .NET SqlConnection = "8000"!})
          * -u Unicode (UTF-16 LE) Output file and Messages File
+         * -i "input_file[,input_file2...]
          * 
          * -an "Application name"
          * -cs "Connection string"
@@ -187,6 +189,15 @@ namespace SimpleSqlExec
             }
         }
 
+        private List<string> _InputFiles = new List<string>();
+        internal List<string> InputFiles
+        {
+            get
+            {
+                return this._InputFiles;
+            }
+        }
+
 
 
         private string _ApplicationName = "Simple SQL Exec";
@@ -303,7 +314,12 @@ namespace SimpleSqlExec
 						break;
 					case "-Q":
 					case "/Q":
-						this._Query = args[++_Index];
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._Query = args[++_Index].TrimEnd(null);
+                        }
 						break;
 					case "-l":
 					case "/l":
@@ -359,6 +375,25 @@ namespace SimpleSqlExec
                     case "-u":
                     case "/u":
                         this._OutputEncoding = new UnicodeEncoding();
+                        break;
+                    case "-i":
+                    case "/i":
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            foreach(string _File in args[++_Index].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                if (File.Exists(_File))
+                                {
+                                    this._InputFiles.Add(_File);
+                                }
+                                else
+                                {
+                                    throw new ArgumentException(String.Concat("The input file \"", _File, "\" could not be found."), "-i");
+                                }
+                            }
+                        }
                         break;
 
                     case "-an":
@@ -425,9 +460,41 @@ namespace SimpleSqlExec
 
         private void ValidateParameters()
         {
-            if (this.Query == String.Empty)
+            if (this.InputFiles.Count > 0 && this.Query != String.Empty)
             {
-                throw new ArgumentException("No query has been specified.\nPlease use the -Q switch to pass in a query batch.");
+                throw new ArgumentException("The -i and -Q switches are mutually exclusive.\nPlease specify only one of those.");
+            }
+
+            if (this.InputFiles.Count == 0 && this.Query == String.Empty)
+            {
+                throw new ArgumentException("No query has been specified.\nPlease use the -Q switch to pass in a query batch\nor specify one or more files using the -i switch.");
+            }
+
+            if (this.InputFiles.Count > 0)
+            {
+                FileInfo _TempFile;
+                bool _AllFilesEmpty = true;
+
+                foreach (string _File in this.InputFiles)
+                {
+                    _TempFile = new FileInfo(_File);
+
+                    if (_TempFile.Length > 0)
+                    {
+                        _AllFilesEmpty = false;
+                        break;
+                    }
+                }
+
+                if (_AllFilesEmpty)
+                {
+                    throw new ArgumentException("All of the input files specified are empty.\nPlease specify one or more non-empty files,\nor use the -Q switch to specify a query.");
+                }
+            }
+
+            if (this.OutputFile != String.Empty)
+            {
+                CheckOutputFilePath(this.OutputFile);
             }
 
             if (this._CheckForExistingOutputFile && this.OutputFile != String.Empty)
@@ -443,6 +510,30 @@ namespace SimpleSqlExec
             if (File.Exists(OutputFile))
             {
                 throw new IOException("The results output file:\n\"" + OutputFile + "\"\nalready exists.");
+            }
+
+            return;
+        }
+
+        private static void CheckOutputFilePath(string OutputFile)
+        {
+            if (File.Exists(OutputFile))
+            {
+                // If the file already exists, open it for append but don't append anything (i.e. check for permissions)
+                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Open, FileAccess.Write, FileShare.Read))
+                {
+                    _CheckFile.Close();
+                }
+            }
+            else
+            {
+                // try to create the file. if successful, delete it.
+                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Create, FileAccess.Write, FileShare.Read))
+                {
+                    _CheckFile.Close();
+                }
+
+                File.Delete(OutputFile);
             }
 
             return;

@@ -78,25 +78,10 @@ namespace SimpleSqlExec
             catch (Exception _Exception)
             {
                 Display.Error(_Exception.Message);
+                //Display.Error(_Exception.StackTrace); // debug
 
                 return 5;
             }
-
-
-            //try
-            //{
-            //    if (_InputParams.MessagesFile != String.Empty)
-            //    {
-            //        File.WriteAllText(_InputParams.MessagesFile,
-            //            Capture._Messages.ToString());
-            //    }
-            //}
-            //catch (Exception _Exception)
-            //{
-            //    Display.Error(_Exception.Message);
-
-            //    return 6;
-            //}
 
 
             try

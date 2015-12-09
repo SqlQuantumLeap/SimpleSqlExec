@@ -50,6 +50,7 @@
     <Compile Include="ProcessQueries.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryBatches.cs" />
     <Compile Include="ResultsOutput.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -59,11 +60,15 @@
   <PropertyGroup>
     <PostBuildEvent>XCOPY /F /Y /V $(TargetPath) $(SolutionDir)Compiled
 
-REN $(SolutionDir)Compiled\$(TargetName).exe $(TargetName).exeX</PostBuildEvent>
+COPY /Y /V $(SolutionDir)Compiled\$(TargetName).exe /B $(SolutionDir)Compiled\$(TargetName).exeX /B</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>IF EXIST $(SolutionDir)Compiled\$(TargetName).exeX (
     DEL /F $(SolutionDir)Compiled\$(TargetName).exeX
+)
+
+IF EXIST $(SolutionDir)Compiled\$(TargetName).exe (
+    DEL /F $(SolutionDir)Compiled\$(TargetName).exe
 )
 </PreBuildEvent>
   </PropertyGroup>
