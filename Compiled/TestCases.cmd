@@ -27,10 +27,12 @@ IF "%1" == "" (
 ECHO.
 
 IF "%SSEskipToSection%" == "" SET SSEskipToSection=all
-IF "%SSEskipToSection%" == "all" GOTO AllTests
-IF "%SSEskipToSection%" == "messages" GOTO MessagesTests
-IF "%SSEskipToSection%" == "inputfile" GOTO InputFileTests
-IF "%SSEskipToSection%" == "outputfile" GOTO OutputFileTests
+IF /I "%SSEskipToSection%" == "all" GOTO AllTests
+IF /I "%SSEskipToSection%" == "messages" GOTO MessagesTests
+IF /I "%SSEskipToSection%" == "generalproperties" GOTO GeneralPropertiesTests
+IF /I "%SSEskipToSection%" == "ConnectionParameters" GOTO ConnectionParametersTests
+IF /I "%SSEskipToSection%" == "inputfile" GOTO InputFileTests
+IF /I "%SSEskipToSection%" == "outputfile" GOTO OutputFileTests
 
 ECHO %SeparatorLine%
 
@@ -98,7 +100,39 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
+
+
+:GeneralPropertiesTests
+REM ------------------------------------------------------
+REM General property tests
+
+ECHO %TestMessageIndicator% Empty batch separator is invalid
+ECHO.
+SimpleSqlExec.exe -c ""
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% White-space-only batch separator is invalid
+ECHO.
+SimpleSqlExec.exe -c "      	  "
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
+
+
 
 
 REM ------------------------------------------------------
@@ -235,12 +269,12 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 
 
-
+:ConnectionParametersTests
 REM ------------------------------------------------------
 REM Connection-related Parameters Tests
 
@@ -378,7 +412,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 REM ------------------------------------------------------
@@ -411,7 +445,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :MessagesTests
@@ -474,7 +508,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 REM ------------------------------------------------------
@@ -525,7 +559,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :InputFileTests
@@ -602,7 +636,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :OutputFileTests
@@ -638,7 +672,7 @@ IF EXIST %TEMP%\SSE_test_output_file.txt (
 ECHO.
 REM SimpleSqlExec.exe -Q "DECLARE @Test INT;" -o %TEMP%\SSE_test_output_file.txt
 SimpleSqlExec.exe -i TestQuery4.sql -o %TEMP%\SSE_test_output_file.txt
-DIR /N C:\Users\Solomon\AppData\Local\Temp\SSE_test_output_file.txt
+DIR /N %TEMP%\SSE_test_output_file.txt
 ECHO.
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
@@ -654,7 +688,8 @@ ECHO.
 
 REM SimpleSqlExec.exe -Q "DECLARE @Test INT;" -o %TEMP%\SSE_test_output_file.txt
 SimpleSqlExec.exe -i TestQuery4.sql -o %TEMP%\SSE_test_output_file.txt
-DIR /N C:\Users\Solomon\AppData\Local\Temp\SSE_test_output_file.txt
+DIR /N %TEMP%\SSE_test_output_file.txt
+IF EXIST %TEMP%\SSE_test_output_file.txt DEL /Q %TEMP%\SSE_test_output_file.txt
 ECHO.
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
@@ -662,5 +697,82 @@ ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
 ECHO %SeparatorLine%
 PAUSE
 ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure result sets across multiple files work
+ECHO %TestMessageIndicator% { no pre-existing output file }
+ECHO.
+
+IF EXIST results.txt (
+	DEL /Q results.txt
+	ECHO Deleted existing results.txt
+)
+SimpleSqlExec.exe -i TestQuery1.sql,TestQuery3.sql -o results.txt
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file OverWrite works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -Q "SELECT 'This should be the only text' AS [OverWrite];" -o results.txt
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file Append works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -Q "SELECT 'This should be appended text' AS [someTest];" -o results.txt -oh append
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file Error(If-Exists) works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -Q "SELECT 'This should not make it to the output file' AS [ErrorIfExists];" -o results.txt -oh error
+SET TempSSEErrorLevel=%ERRORLEVEL%
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 2
+ECHO %TestMessageIndicator% ErrorLevel is:        %TempSSEErrorLevel%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+IF EXIST results.txt DEL /Q results.txt
+IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 

@@ -17,7 +17,8 @@ namespace SimpleSqlExec
 
         public QueryBatches(InputParameters InputParams)
         {
-            //_BatchSeparator = InputParams.BatchSeparator;
+            _BatchSeparator = InputParams.BatchSeparator;
+
             if (InputParams.InputFiles.Count > 0)
             {
                 this._InputFiles = InputParams.InputFiles;
@@ -27,7 +28,7 @@ namespace SimpleSqlExec
                 // add a place-holder batch in slot 1 since the first call to
                 // NextBatch() will remove the first entry.
                 this._Batches.Add(String.Empty);
-                this._Batches.Add(InputParams.Query);
+                this._Batches.Add(InputParams.Query); // replace with batch parser method
                 this._InputFiles = new List<string>();
             }
 

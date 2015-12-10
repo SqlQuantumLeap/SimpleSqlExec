@@ -51,6 +51,7 @@ namespace SimpleSqlExec
             Console.WriteLine("\t-a \"packet size\" (range: 512 - 32767; default: \"4096\" {default for .NET SqlConnection = \"8000\"!})");
             Console.WriteLine("\t-u Unicode (UTF-16 LE) Output file and Messages File");
             Console.WriteLine("\t-i \"input_file[,input_file2...]\"");
+            Console.WriteLine("\t-c \"batch_separator\" (default: \"GO\")");
 
             Console.WriteLine("\t-? / -help / (no command-line options) Display usage");
             Console.WriteLine("");

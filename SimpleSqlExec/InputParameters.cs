@@ -35,12 +35,13 @@ namespace SimpleSqlExec
          * -a "Packet size" (range: 512 - 32767; default: "4096" {default for .NET SqlConnection = "8000"!})
          * -u Unicode (UTF-16 LE) Output file and Messages File
          * -i "input_file[,input_file2...]
+         * -c "batch_separator" (default: "GO")
          * 
          * -an "Application name"
          * -cs "Connection string"
          * -ra "Rows Affected file path {or environment variable name?}"
          * -mf "Messages File"
-         * -ef "Error File"
+         * ?? -ef "Error File" ?? not implemented
          * -oh "Output file handling" (OverWrite, Append, or Error)
          * -? / -help  Display usage
          */
@@ -195,6 +196,15 @@ namespace SimpleSqlExec
             get
             {
                 return this._InputFiles;
+            }
+        }
+
+        private string _BatchSeparator = "GO"; // SQLCMD (and SSMS) default
+        internal string BatchSeparator
+        {
+            get
+            {
+                return this._BatchSeparator;
             }
         }
 
@@ -395,6 +405,15 @@ namespace SimpleSqlExec
                             }
                         }
                         break;
+                    case "-c":
+                    case "/c":
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._BatchSeparator = args[++_Index].Trim();
+                        }
+                        break;
 
                     case "-an":
                     case "/an":
@@ -460,6 +479,11 @@ namespace SimpleSqlExec
 
         private void ValidateParameters()
         {
+            if (this.BatchSeparator ==  String.Empty)
+            {
+                throw new ArgumentException("The batch separator cannot be an empty string or all white-space characters.");
+            }
+
             if (this.InputFiles.Count > 0 && this.Query != String.Empty)
             {
                 throw new ArgumentException("The -i and -Q switches are mutually exclusive.\nPlease specify only one of those.");
