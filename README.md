@@ -7,7 +7,6 @@ Eventually **SimpleSqlExec** will allow for options such as:
 * multiple batches
 * specifying the batch separater (`-c` option for SQLCMD; default = `GO`)
 * "Batch Abort" (`-b` option for SQLCMD)
-* "Input File" (`-i` option for SQLCMD)
 * Passing in variables  (`-v` option for SQLCMD)
 
 ---
