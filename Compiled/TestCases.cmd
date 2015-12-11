@@ -130,6 +130,36 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
+
+ECHO %TestMessageIndicator% AttachDBFilename that is white-space only
+ECHO %TestMessageIndicator% ERROR: No query has been specified.
+ECHO %TestMessageIndicator% Please use the -Q switch to pass in a query batch
+ECHO %TestMessageIndicator% or specify one or more files using the -i switch.
+ECHO.
+SimpleSqlExec.exe -ad "      	  "
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% AttachDBFilename that does not exist
+ECHO %TestMessageIndicator% ERROR: The requested database file to attach:
+ECHO %TestMessageIndicator% "f"
+ECHO %TestMessageIndicator% cannot be found or is inaccessible.
+ECHO.
+SimpleSqlExec.exe -ad "f"
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 2
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
 IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 

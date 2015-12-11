@@ -42,7 +42,7 @@ namespace SimpleSqlExec
             Console.WriteLine("\t-Q \"Query\"");
             Console.WriteLine("\t-l \"Login (i.e. connection) timeout\" (default: \"15\")");
             Console.WriteLine("\t-t \"Query (i.e. command) timeout\" (default: \"30\")");
-            Console.WriteLine("\t-K \"Application intent\"");
+            Console.WriteLine("\t-K \"Application intent\" (\"ReadOnly\" or \"ReadWrite\"; default: \"ReadWrite\")");
             Console.WriteLine("\t-N Encrypt Connection (default: false)");
             Console.WriteLine("\t-C Trust Server Certificate (default: false)");
             Console.WriteLine("\t-M MultiSubnet Failover (default: false)");
@@ -50,8 +50,8 @@ namespace SimpleSqlExec
             Console.WriteLine("\t-s \"Column separator\" (default: \" \")");
             Console.WriteLine("\t-a \"packet size\" (range: 512 - 32767; default: \"4096\" {default for .NET SqlConnection = \"8000\"!})");
             Console.WriteLine("\t-u Unicode (UTF-16 LE) Output file and Messages File");
-            Console.WriteLine("\t-i \"input_file[,input_file2...]\"");
-            Console.WriteLine("\t-c \"batch_separator\" (default: \"GO\")");
+            Console.WriteLine("\t-i \"Input file[,input file2...]\"");
+            Console.WriteLine("\t-c \"Batch terminator\" (default: \"GO\")");
 
             Console.WriteLine("\t-? / -help / (no command-line options) Display usage");
             Console.WriteLine("");
@@ -59,11 +59,13 @@ namespace SimpleSqlExec
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("\tFunctionality unique to SimpleSqlExec:");
             Console.ResetColor();
+            Console.WriteLine("\t-ad \"Attach DB filename\"");
             Console.WriteLine("\t-an \"Application name\" (default: \"Simple SQL Exec\")");
             Console.WriteLine("\t-cs \"Connection string\"");
             Console.WriteLine("\t-ra \"Rows Affected file path or User environment variable name\"");
-            Console.WriteLine("\t-mf \"Messages File\"");
+            Console.WriteLine("\t-mf \"Messages file\"");
             Console.WriteLine("\t-oh \"Output file handling\" (OverWrite, Append, or Error)");
+            Console.WriteLine("\t-debug \"Debug info file\"");
             Console.WriteLine("");            
 
             Console.WriteLine("Notes:");

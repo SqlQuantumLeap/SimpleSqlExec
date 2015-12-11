@@ -1,0 +1,4 @@
+SET NOCOUNT ON;
+DECLARE @ErrorTable TABLE ([Col1] INT PRIMARY KEY);
+INSERT INTO @ErrorTable ([Col1]) VALUES (1);
+INSERT INTO @ErrorTable ([Col1]) VALUES (1);

@@ -5,24 +5,33 @@
  */
 using System;
 using System.Data.SqlClient;
+using System.IO;
+using System.Text;
 
 namespace SimpleSqlExec
 {
     internal class Helpers
     {
+        private static bool _DebugEnabled = false;
+        private static string _DebugFile = null;
+
         internal static string GetConnectionString(InputParameters InputParams)
         {
             SqlConnectionStringBuilder _ConnectionString;
 
             if (InputParams.ConnectionString != String.Empty)
             {
+                Debug("Using passed-in ConnectionString.");
                 _ConnectionString = new SqlConnectionStringBuilder(InputParams.ConnectionString);
+                _ConnectionString.Pooling = false; // override just in case it was passed in
+                _ConnectionString.ContextConnection = false; // override just in case it was passed in
 
                 return _ConnectionString.ConnectionString;
             }
             
             _ConnectionString = new SqlConnectionStringBuilder();
 
+            _ConnectionString.Pooling = false;
             _ConnectionString.ApplicationIntent = InputParams.AppIntent;
             _ConnectionString.ApplicationName = InputParams.ApplicationName;
             _ConnectionString.AttachDBFilename = InputParams.AttachDBFilename;
@@ -60,6 +69,35 @@ namespace SimpleSqlExec
                 return new OutputFile(InputParams.OutputFile,
                     InputParams.OutputFileAppend, InputParams.OutputEncoding);
             }
+        }
+
+        internal static void SetDebugMode(string DebugInfoFile)
+        {
+            if (DebugInfoFile != String.Empty)
+            {
+                _DebugFile = DebugInfoFile;
+                _DebugEnabled = true;
+            }
+
+            return;
+        }
+
+        internal static void Debug(string DebugMessage)
+        {
+            if(!_DebugEnabled)
+            {
+                return;
+            }
+
+            string _FullMessage = String.Concat(
+                DateTime.Now.ToString("yyyy-MM-dd @ HH:mm:ss.fff"),
+                " -- ",
+                DebugMessage,
+                "\r\n");
+
+            File.AppendAllText(_DebugFile, _FullMessage, Encoding.UTF8);
+
+            return;
         }
     }
 }
