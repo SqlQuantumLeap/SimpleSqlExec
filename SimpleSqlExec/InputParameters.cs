@@ -362,7 +362,16 @@ namespace SimpleSqlExec
                         break;
                     case "-K":
                     case "/K":
-                        Enum.TryParse<ApplicationIntent>(args[++_Index], out this._AppIntent);
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            if (!Enum.TryParse<ApplicationIntent>(args[++_Index], out this._AppIntent))
+                            {
+                                throw new ArgumentException(String.Concat("Invalid ApplicationIntent value: ",
+                                    args[_Index], ".\nValid values are: ReadWrite and ReadOnly."), "-K");
+                            }
+                        }
 						break;
                     case "-N":
                     case "/N":
@@ -519,7 +528,7 @@ namespace SimpleSqlExec
 
             if (this.BatchTerminator == String.Empty)
             {
-                throw new ArgumentException("The batch terminator cannot be an empty string or all white-space characters.");
+                throw new ArgumentException("The batch terminator cannot be an empty\nstring or all white-space characters.");
             }
 
             if (this.InputFiles.Count > 0 && this.Query != String.Empty)

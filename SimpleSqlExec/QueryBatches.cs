@@ -127,7 +127,7 @@ namespace SimpleSqlExec
             string _Pattern = String.Concat(
                 @"(?si)(.*?\n)??(?<=^|\n)[ \t]*",
                 this._BatchTerminator,
-                @"(?:[ \t]+(\d+))?[ \t]*(?:\r?\n|$)|(.*)$"
+                @"(?:[ \t]+(\d+))?[ \t]*(?:--[^\n]*)?(?:\r?\n|$)|(.*)$"
                 );
 
             foreach (Match _Batch in Regex.Matches(SqlToExec, _Pattern))
