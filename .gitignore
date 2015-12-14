@@ -47,3 +47,6 @@ obj/
 SimpleSqlExec/SimpleSqlExec.csproj.user
 Compiled/SimpleSqlExec.exe
 Compiled/messages.txt
+Compiled/results.txt
+Compiled/debug.txt
+Compiled/output.txt

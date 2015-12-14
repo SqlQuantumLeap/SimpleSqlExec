@@ -21,6 +21,8 @@ namespace SimpleSqlExec
             {
                 if (InputParams.MessagesFile != String.Empty)
                 {
+                    Helpers.Debug("Setting up the MessagesFile and handler.");
+
                     // clear out existing file
                     File.Delete(InputParams.MessagesFile);
 
@@ -38,6 +40,8 @@ namespace SimpleSqlExec
 
                     if (InputParams.RowsAffectedDestination != String.Empty)
                     {
+                        Helpers.Debug("Setting up the RowsAffected handler.");
+
                         _Command.StatementCompleted += Capture.StatementCompletedHandler;
                     }
 
@@ -55,6 +59,7 @@ namespace SimpleSqlExec
                         {
                             _Command.CommandText = _Queries.GetBatch();
 
+                            Helpers.Debug("Executing the batch...");
                             using (SqlDataReader _Reader = _Command.ExecuteReader())
                             {
                                 object[] _ResultRow;
@@ -91,7 +96,7 @@ namespace SimpleSqlExec
                     {
                         if (_Output.GetType() == typeof(OutputFile))
                         {
-                            // Console.WriteLine("got called!"); // debug
+                            Helpers.Debug("Close output file!");
                             _Output.Dispose();
                         }
                     }

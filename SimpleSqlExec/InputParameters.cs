@@ -34,15 +34,18 @@ namespace SimpleSqlExec
          * -s "Column separator"
          * -a "Packet size" (range: 512 - 32767; default: "4096" {default for .NET SqlConnection = "8000"!})
          * -u Unicode (UTF-16 LE) Output file and Messages File
-         * -i "input_file[,input_file2...]
+         * -i "Input file[,input file2...]
+         * -c "Batch terminator" (default: "GO")
+         * -? / -help  Display usage
          * 
+         * -ad "Attach DB filename"
          * -an "Application name"
          * -cs "Connection string"
          * -ra "Rows Affected file path {or environment variable name?}"
          * -mf "Messages File"
-         * -ef "Error File"
+         * ?? -ef "Error File" ?? not implemented
          * -oh "Output file handling" (OverWrite, Append, or Error)
-         * -? / -help  Display usage
+         * -debug "Debug info file"
          */
 
         private string _UserID = String.Empty;
@@ -117,7 +120,7 @@ namespace SimpleSqlExec
             }
         }
 
-        private ApplicationIntent _AppIntent = ApplicationIntent.ReadWrite; // .NET SqlConnection default
+        private ApplicationIntent _AppIntent = ApplicationIntent.ReadWrite; // .NET SqlConnection default ; SQLCMD only supports "ReadOnly"!
         internal ApplicationIntent AppIntent
         {
             get
@@ -198,6 +201,15 @@ namespace SimpleSqlExec
             }
         }
 
+        private string _BatchTerminator = "GO"; // SQLCMD (and SSMS) default
+        internal string BatchTerminator
+        {
+            get
+            {
+                return this._BatchTerminator;
+            }
+        }
+
 
 
         private string _ApplicationName = "Simple SQL Exec";
@@ -273,6 +285,15 @@ namespace SimpleSqlExec
             }
         }
 
+        private string _DebugInfoFile = String.Empty;
+        internal string DebugInfoFile
+        {
+            get
+            {
+                return this._DebugInfoFile;
+            }
+        }
+
 
         public InputParameters(string[] args)
         {
@@ -341,7 +362,16 @@ namespace SimpleSqlExec
                         break;
                     case "-K":
                     case "/K":
-                        Enum.TryParse<ApplicationIntent>(args[++_Index], out this._AppIntent);
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            if (!Enum.TryParse<ApplicationIntent>(args[++_Index], out this._AppIntent))
+                            {
+                                throw new ArgumentException(String.Concat("Invalid ApplicationIntent value: ",
+                                    args[_Index], ".\nValid values are: ReadWrite and ReadOnly."), "-K");
+                            }
+                        }
 						break;
                     case "-N":
                     case "/N":
@@ -395,14 +425,28 @@ namespace SimpleSqlExec
                             }
                         }
                         break;
+                    case "-c":
+                    case "/c":
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._BatchTerminator = args[++_Index].Trim();
+                        }
+                        break;
 
                     case "-an":
                     case "/an":
                         this._ApplicationName = args[++_Index];
                         break;
-                    case "-af":
-                    case "/af":
-                        this._AttachDBFilename = args[++_Index];
+                    case "-ad":
+                    case "/ad":
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._AttachDBFilename = args[++_Index].Trim();
+                        }
                         break;
                     case "-cs":
                     case "/cs":
@@ -446,7 +490,16 @@ namespace SimpleSqlExec
 					case "/?":
 						this._DisplayUsage = true;
 						break;
-					default:
+                    case "-debug":
+                    case "/debug":
+                        if ((args.Length >= (_Index + 2))
+                            && !args[_Index + 1].StartsWith("-", StringComparison.Ordinal)
+                            && !args[_Index + 1].StartsWith("/", StringComparison.Ordinal))
+                        {
+                            this._DebugInfoFile = args[++_Index].Trim();
+                        }
+                        break;
+                    default:
 						throw new ArgumentException("Invalid parameter specified.", args[_Index]);
                 } // switch (args[_Index])
             } // for (int _Index = 0; _Index < args.Length; _Index++)
@@ -460,6 +513,24 @@ namespace SimpleSqlExec
 
         private void ValidateParameters()
         {
+            if (this.DebugInfoFile != String.Empty)
+            {
+                CheckFilePath(this.DebugInfoFile);
+            }
+
+            if (this.AttachDBFilename != String.Empty)
+            {
+               if(!File.Exists(this.AttachDBFilename))
+               {
+                   throw new IOException("The requested database file to attach:\n\"" + this.AttachDBFilename + "\"\ncannot be found or is inaccessible.");
+               }
+            }
+
+            if (this.BatchTerminator == String.Empty)
+            {
+                throw new ArgumentException("The batch terminator cannot be an empty\nstring or all white-space characters.");
+            }
+
             if (this.InputFiles.Count > 0 && this.Query != String.Empty)
             {
                 throw new ArgumentException("The -i and -Q switches are mutually exclusive.\nPlease specify only one of those.");
@@ -494,7 +565,7 @@ namespace SimpleSqlExec
 
             if (this.OutputFile != String.Empty)
             {
-                CheckOutputFilePath(this.OutputFile);
+                CheckFilePath(this.OutputFile);
             }
 
             if (this._CheckForExistingOutputFile && this.OutputFile != String.Empty)
@@ -515,12 +586,12 @@ namespace SimpleSqlExec
             return;
         }
 
-        private static void CheckOutputFilePath(string OutputFile)
+        private static void CheckFilePath(string FilePath)
         {
-            if (File.Exists(OutputFile))
+            if (File.Exists(FilePath))
             {
-                // If the file already exists, open it for append but don't append anything (i.e. check for permissions)
-                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Open, FileAccess.Write, FileShare.Read))
+                // If the file already exists, open it but don't append anything (i.e. check for permissions)
+                using (FileStream _CheckFile = File.Open(FilePath, FileMode.Open, FileAccess.Write, FileShare.Read))
                 {
                     _CheckFile.Close();
                 }
@@ -528,12 +599,12 @@ namespace SimpleSqlExec
             else
             {
                 // try to create the file. if successful, delete it.
-                using (FileStream _CheckFile = File.Open(OutputFile, FileMode.Create, FileAccess.Write, FileShare.Read))
+                using (FileStream _CheckFile = File.Open(FilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
                 {
                     _CheckFile.Close();
                 }
 
-                File.Delete(OutputFile);
+                File.Delete(FilePath);
             }
 
             return;

@@ -43,6 +43,13 @@ namespace SimpleSqlExec
 
     internal class OutputDisplay : ResultsOutput
     {
+        public OutputDisplay()
+        {
+            Helpers.Debug("Setting up output to Console.");
+
+            return;
+        }
+
         internal override void Send(string Output)
         {
             Console.WriteLine(Output);
@@ -65,6 +72,8 @@ namespace SimpleSqlExec
 
         public OutputFile(string FileName, bool Append, Encoding OutputEncoding)
         {
+            Helpers.Debug("Setting up output to File.");
+
             this._FileName = FileName;
             this._Append = Append;
 

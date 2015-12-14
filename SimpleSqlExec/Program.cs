@@ -36,6 +36,10 @@ namespace SimpleSqlExec
                 return 2;
             }
 
+            Helpers.SetDebugMode(_InputParams.DebugInfoFile);
+            Helpers.Debug("--===========================================================--");
+            Helpers.Debug("Starting...");
+
             if (_InputParams.DisplayUsage)
             {
                 Display.Usage();
@@ -48,6 +52,8 @@ namespace SimpleSqlExec
 
             try
             {
+                Helpers.Debug("Parsing ConnectionString.");
+
                 _ConnectionString = Helpers.GetConnectionString(_InputParams);
             }
             catch(Exception _Exception)
@@ -78,7 +84,8 @@ namespace SimpleSqlExec
             catch (Exception _Exception)
             {
                 Display.Error(_Exception.Message);
-                //Display.Error(_Exception.StackTrace); // debug
+                Helpers.Debug(_Exception.Message);
+                Helpers.Debug(_Exception.StackTrace);
 
                 return 5;
             }
@@ -88,13 +95,19 @@ namespace SimpleSqlExec
             {
                 if (_InputParams.RowsAffectedDestination != String.Empty)
                 {
+                    Helpers.Debug("Handling RowsAffected.");
+
                     if (_InputParams.RowsAffectedDestination.LastIndexOf(".") > -1)
                     {
+                        Helpers.Debug("RowsAffected saved to file: " + _InputParams.RowsAffectedDestination);
+
                         File.WriteAllText(_InputParams.RowsAffectedDestination,
                             Capture._RowsAffected.ToString());
                     }
                     else
                     {
+                        Helpers.Debug("RowsAffected stored in variable: " + _InputParams.RowsAffectedDestination);
+
                         Environment.SetEnvironmentVariable(_InputParams.RowsAffectedDestination,
                             Capture._RowsAffected.ToString(), EnvironmentVariableTarget.User);
                     }
@@ -108,6 +121,8 @@ namespace SimpleSqlExec
             }
 
 
+            Helpers.Debug("Ending...");
+            Helpers.Debug("--===========================================================--");
             return 0;
         }
     }

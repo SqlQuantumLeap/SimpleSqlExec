@@ -27,16 +27,20 @@ IF "%1" == "" (
 ECHO.
 
 IF "%SSEskipToSection%" == "" SET SSEskipToSection=all
-IF "%SSEskipToSection%" == "all" GOTO AllTests
-IF "%SSEskipToSection%" == "messages" GOTO MessagesTests
-IF "%SSEskipToSection%" == "inputfile" GOTO InputFileTests
-IF "%SSEskipToSection%" == "outputfile" GOTO OutputFileTests
+IF /I "%SSEskipToSection%" == "all" GOTO AllTests
+IF /I "%SSEskipToSection%" == "messages" GOTO MessagesTests
+IF /I "%SSEskipToSection%" == "generalparameters" GOTO GeneralParameterTests
+IF /I "%SSEskipToSection%" == "ConnectionParameters" GOTO ConnectionParametersTests
+IF /I "%SSEskipToSection%" == "inputfile" GOTO InputFileTests
+IF /I "%SSEskipToSection%" == "outputfile" GOTO OutputFileTests
+IF /I "%SSEskipToSection%" == "batchprocessing" GOTO BatchProcessingTests
 
 ECHO %SeparatorLine%
 
 :AllTests
+:GeneralParameterTests
 REM ------------------------------------------------------
-REM General Tests
+REM General Parameter Tests
 
 ECHO %TestMessageIndicator% Success: Display Usage
 ECHO.
@@ -49,7 +53,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-REM Case 2
+
 ECHO %TestMessageIndicator% Success: Display Usage
 ECHO.
 
@@ -73,7 +77,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-REM Case 4
+
 ECHO %TestMessageIndicator% ERROR: Invalid parameter specified.
 ECHO %TestMessageIndicator% Parameter name: -zzz
 
@@ -85,7 +89,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-REM Case 5
+
 ECHO %TestMessageIndicator% ERROR: Invalid Query / Command Timeout value: -12; the value must be ^>= 0.
 ECHO %TestMessageIndicator% Parameter name: -t
 ECHO.
@@ -98,7 +102,82 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+
+ECHO %TestMessageIndicator% Empty batch separator is invalid
+ECHO %TestMessageIndicator% ERROR: The batch terminator cannot be an empty
+ECHO %TestMessageIndicator% string or all white-space characters.
+ECHO.
+SimpleSqlExec.exe -c ""
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% White-space-only batch separator is invalid
+ECHO %TestMessageIndicator% ERROR: The batch terminator cannot be an empty
+ECHO %TestMessageIndicator% string or all white-space characters.
+ECHO.
+SimpleSqlExec.exe -c "      	  "
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% AttachDBFilename that is white-space only
+ECHO %TestMessageIndicator% ERROR: No query has been specified.
+ECHO %TestMessageIndicator% Please use the -Q switch to pass in a query batch
+ECHO %TestMessageIndicator% or specify one or more files using the -i switch.
+ECHO.
+SimpleSqlExec.exe -ad "      	  "
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% AttachDBFilename that does not exist
+ECHO %TestMessageIndicator% ERROR: The requested database file to attach:
+ECHO %TestMessageIndicator% "f"
+ECHO %TestMessageIndicator% cannot be found or is inaccessible.
+ECHO.
+SimpleSqlExec.exe -ad "f"
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 2
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% Invalid ApplicationIntent
+ECHO %TestMessageIndicator% ERROR: Invalid ApplicationIntent value: a.
+ECHO %TestMessageIndicator% Valid values are: ReadWrite and ReadOnly.
+ECHO %TestMessageIndicator% Parameter name: -K
+ECHO.
+
+SimpleSqlExec.exe -K a
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 1
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
+
 
 
 REM ------------------------------------------------------
@@ -213,7 +292,7 @@ ECHO %TestMessageIndicator% ERROR: No query has been specified.
 ECHO %TestMessageIndicator% Please use the -Q switch to pass in a query batch
 ECHO %TestMessageIndicator% or specify one or more files using the -i switch.
 
-SimpleSqlExec.exe -Q "" -i TestQuery2.sql
+SimpleSqlExec.exe -Q "" -i TestQuery02_Empty.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 1
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -227,7 +306,7 @@ ECHO.
 ECHO %TestMessageIndicator% ERROR: The -i and -Q switches are mutually exclusive.
 ECHO %TestMessageIndicator% Please specify only one of those.
 
-SimpleSqlExec.exe -Q "a" -i TestQuery1.sql
+SimpleSqlExec.exe -Q "a" -i TestQuery01_Part1of2-CreateTempTable.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 1
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -235,33 +314,12 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
-
-
-
+:ConnectionParametersTests
 REM ------------------------------------------------------
 REM Connection-related Parameters Tests
-
-ECHO %TestMessageIndicator% No Connection parameters passed in!
-ECHO %TestMessageIndicator% Test only works if a default instance exists on the local machine.
-ECHO.
-ECHO %TestMessageIndicator% ERROR: Could not find stored procedure 's'.
-ECHO %TestMessageIndicator% Error Number:    2812
-ECHO %TestMessageIndicator% Error Level:     16
-ECHO %TestMessageIndicator% Error State:     62
-ECHO %TestMessageIndicator% Error Procedure:
-ECHO %TestMessageIndicator% Error Line:      1
-ECHO %TestMessageIndicator% HRESULT:         -2146232060
-
-SimpleSqlExec.exe -K a -Q "s"
-
-ECHO %TestMessageIndicator% ErrorLevel should be: 4
-ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
-ECHO %SeparatorLine%
-PAUSE
-ECHO.
 
 REM Connect using all defaults:
 REM Server should be "(LOCAL)" which only works if there is a default instance installed locally
@@ -378,7 +436,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 REM ------------------------------------------------------
@@ -386,7 +444,7 @@ REM Displayed Result Set Tests
 
 ECHO %TestMessageIndicator% One result set, one row, one column
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 1 AS [Col1];"
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 1 AS [Col1];"
 
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
 ECHO %SeparatorLine%
@@ -395,7 +453,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Two result sets, one row, various columns
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 1 AS [Col1], 2 AS [Col2];SELECT GETDATE() AS [Col1b];"
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 1 AS [Col1], 2 AS [Col2];SELECT GETDATE() AS [Col1b];"
 
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
 ECHO %SeparatorLine%
@@ -404,14 +462,14 @@ ECHO.
 
 ECHO %TestMessageIndicator% Two result sets, one row, two columns, Unicode string
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 1 AS [Col1], 2 AS [Col2];SELECT GETDATE() AS [Col1b], NCHAR(7777) AS [Col2b];"
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 1 AS [Col1], 2 AS [Col2];SELECT GETDATE() AS [Col1b], NCHAR(7777) AS [Col2b];"
 
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
 ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :MessagesTests
@@ -421,7 +479,7 @@ REM Messages File Tests
 ECHO %TestMessageIndicator% No capturing of Messages
 ECHO.
 ECHO.
-SimpleSqlExec.exe -Q "PRINT 5;"
+SimpleSqlExec.exe -S %SSEtestServer% -Q "PRINT 5;"
 
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
 ECHO %SeparatorLine%
@@ -431,7 +489,7 @@ ECHO.
 ECHO %TestMessageIndicator% Create new messages file
 ECHO.
 IF EXIST messages.txt DEL /Q messages.txt
-SimpleSqlExec.exe -Q "PRINT 5;" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "PRINT 5;" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -442,7 +500,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Overwrite existing messages file
 ECHO.
-SimpleSqlExec.exe -Q "PRINT 6;" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "PRINT 6;" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -453,7 +511,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Overwrite existing messages file; Unicode character; non-Unicode encoding
 ECHO.
-SimpleSqlExec.exe -Q "PRINT '7' + NCHAR(7777);" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "PRINT '7' + NCHAR(7777);" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -465,7 +523,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Overwrite existing messages file; Unicode character; Unicode encoding
 ECHO.
-SimpleSqlExec.exe -Q "PRINT '8' + NCHAR(7777);" -mf messages.txt -u
+SimpleSqlExec.exe -S %SSEtestServer% -Q "PRINT '8' + NCHAR(7777);" -mf messages.txt -u
 type messages.txt
 ECHO.
 
@@ -474,7 +532,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 REM ------------------------------------------------------
@@ -482,7 +540,7 @@ REM Error Handling as it relates to timing of Messages Tests
 
 ECHO %TestMessageIndicator% Interleaved results and messages; no errors
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 1 AS [Col1]; PRINT 5; SELECT 2 AS [Col2]; PRINT 6;" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 1 AS [Col1]; PRINT 5; SELECT 2 AS [Col2]; PRINT 6;" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -493,7 +551,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Interleaved results and messages; error at the end
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 11 AS [Col1]; PRINT 55; SELECT 22 AS [Col2]; PRINT 65; RAISERROR('test1', 16, 1);" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 11 AS [Col1]; PRINT 55; SELECT 22 AS [Col2]; PRINT 65; RAISERROR('test1', 16, 1);" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -504,7 +562,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Interleaved results and messages; error between PRINT statements
 ECHO.
-SimpleSqlExec.exe -Q "SELECT 111 AS [Col1]; PRINT 58; RAISERROR('test2', 16, 1); SELECT 222 AS [Col2]; PRINT 68;" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 111 AS [Col1]; PRINT 58; RAISERROR('test2', 16, 1); SELECT 222 AS [Col2]; PRINT 68;" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -516,7 +574,7 @@ ECHO.
 
 ECHO %TestMessageIndicator% Interleaved results and messages in a stored proc; error between PRINT statements
 ECHO.
-SimpleSqlExec.exe -Q "EXEC ('CREATE PROCEDURE #tmp AS SELECT 112 AS [Col1]; PRINT 59; RAISERROR(''test3'', 16, 1); SELECT 223 AS [Col2]; PRINT 69;'); EXEC #tmp;" -mf messages.txt
+SimpleSqlExec.exe -S %SSEtestServer% -Q "EXEC ('CREATE PROCEDURE #tmp AS SELECT 112 AS [Col1]; PRINT 59; RAISERROR(''test3'', 16, 1); SELECT 223 AS [Col2]; PRINT 69;'); EXEC #tmp;" -mf messages.txt
 type messages.txt
 ECHO.
 
@@ -525,7 +583,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :InputFileTests
@@ -536,7 +594,7 @@ ECHO %TestMessageIndicator% -i with non-empty file of only white-space character
 ECHO %TestMessageIndicator% Success!
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery4.sql
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery04_WhiteSpaceOnly.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -549,7 +607,7 @@ ECHO %TestMessageIndicator% -i with a single file
 ECHO %TestMessageIndicator% Success!
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery1.sql
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery01_Part1of2-CreateTempTable.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -562,7 +620,7 @@ ECHO %TestMessageIndicator% -i with two files (related files and in order)
 ECHO %TestMessageIndicator% Success!
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery1.sql,TestQuery3.sql
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery01_Part1of2-CreateTempTable.sql,TestQuery03_Part2of2-UseTempTable.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -581,7 +639,7 @@ ECHO %TestMessageIndicator% Error Line:      1
 ECHO %TestMessageIndicator% HRESULT:         -2146232060
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery3.sql,TestQuery1.sql
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery03_Part2of2-UseTempTable.sql,TestQuery01_Part1of2-CreateTempTable.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 4
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -594,7 +652,7 @@ ECHO %TestMessageIndicator% -i with three files (related files, in order, middle
 ECHO %TestMessageIndicator% Success!
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery1.sql,TestQuery4.sql,TestQuery3.sql
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery01_Part1of2-CreateTempTable.sql,TestQuery04_WhiteSpaceOnly.sql,TestQuery03_Part2of2-UseTempTable.sql
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -602,7 +660,7 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
-IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+IF /I NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
 
 :OutputFileTests
@@ -613,7 +671,7 @@ ECHO %TestMessageIndicator% -i with two files (related files and in order) and -
 ECHO %TestMessageIndicator% ERROR: The given path's format is not supported.
 ECHO.
 
-SimpleSqlExec.exe -i TestQuery1.sql,TestQuery3.sql -o hh:\tt\zz.df
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery01_Part1of2-CreateTempTable.sql,TestQuery03_Part2of2-UseTempTable.sql -o hh:\tt\zz.df
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 2
 ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
@@ -637,8 +695,8 @@ IF EXIST %TEMP%\SSE_test_output_file.txt (
 )
 ECHO.
 REM SimpleSqlExec.exe -Q "DECLARE @Test INT;" -o %TEMP%\SSE_test_output_file.txt
-SimpleSqlExec.exe -i TestQuery4.sql -o %TEMP%\SSE_test_output_file.txt
-DIR /N C:\Users\Solomon\AppData\Local\Temp\SSE_test_output_file.txt
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery04_WhiteSpaceOnly.sql -o %TEMP%\SSE_test_output_file.txt
+DIR /N %TEMP%\SSE_test_output_file.txt
 ECHO.
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
@@ -653,8 +711,9 @@ ECHO %TestMessageIndicator%
 ECHO.
 
 REM SimpleSqlExec.exe -Q "DECLARE @Test INT;" -o %TEMP%\SSE_test_output_file.txt
-SimpleSqlExec.exe -i TestQuery4.sql -o %TEMP%\SSE_test_output_file.txt
-DIR /N C:\Users\Solomon\AppData\Local\Temp\SSE_test_output_file.txt
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery04_WhiteSpaceOnly.sql -o %TEMP%\SSE_test_output_file.txt
+DIR /N %TEMP%\SSE_test_output_file.txt
+IF EXIST %TEMP%\SSE_test_output_file.txt DEL /Q %TEMP%\SSE_test_output_file.txt
 ECHO.
 
 ECHO %TestMessageIndicator% ErrorLevel should be: 0
@@ -663,4 +722,159 @@ ECHO %SeparatorLine%
 PAUSE
 ECHO.
 
+
+ECHO %TestMessageIndicator% -o with good path; make sure result sets across multiple files work
+ECHO %TestMessageIndicator% { no pre-existing output file }
+ECHO.
+
+IF EXIST results.txt (
+	DEL /Q results.txt
+	ECHO Deleted existing results.txt
+)
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery01_Part1of2-CreateTempTable.sql,TestQuery03_Part2of2-UseTempTable.sql -o results.txt
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file OverWrite works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 'This should be the only text' AS [OverWrite];" -o results.txt
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file Append works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 'This should be appended text' AS [someTest];" -o results.txt -oh append
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% -o with good path; make sure output file Error(If-Exists) works
+ECHO %TestMessageIndicator% { output file should exist }
+ECHO.
+
+IF NOT EXIST results.txt (
+	ECHO results.txt file does not exist. This test is not valid without that file.
+)
+SimpleSqlExec.exe -S %SSEtestServer% -Q "SELECT 'This should not make it to the output file' AS [ErrorIfExists];" -o results.txt -oh error
+SET TempSSEErrorLevel=%ERRORLEVEL%
+DIR /N results.txt
+ECHO.
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 2
+ECHO %TestMessageIndicator% ErrorLevel is:        %TempSSEErrorLevel%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+IF EXIST results.txt DEL /Q results.txt
+IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
+
+
+:BatchProcessingTests
+REM ------------------------------------------------------
+REM Batch parsing and processing tests
+
+ECHO %TestMessageIndicator% single file with multiple, single-iteration batches; no output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery08_MultipleBatches.sql
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% single file with multiple, single-iteration batches; output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery08_MultipleBatches.sql -o output.txt -oh overwrite
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% single file with single, multiple-iteration batch; no output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery09_SingleBatchIterated.sql
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% single file with single, multiple-iteration batch; output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery09_SingleBatchIterated.sql -o output.txt -oh append
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% mulitple files with multiple, multiple-iteration batches; no output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery09_SingleBatchIterated.sql,TestQuery08_MultipleBatches.sql
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+ECHO %TestMessageIndicator% mulitple files with multiple, multiple-iteration batches; output file
+ECHO.
+
+SimpleSqlExec.exe -S %SSEtestServer% -i TestQuery09_SingleBatchIterated.sql,TestQuery08_MultipleBatches.sql -o output.txt
+
+ECHO %TestMessageIndicator% ErrorLevel should be: 0
+ECHO %TestMessageIndicator% ErrorLevel is:        %ERRORLEVEL%
+ECHO %SeparatorLine%
+PAUSE
+ECHO.
+
+
+IF NOT "%SSEskipToSection%" == "all" GOTO :EOF
 
