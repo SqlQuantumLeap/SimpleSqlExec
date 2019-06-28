@@ -1,0 +1,18 @@
+
+-b
+Specifies that sqlcmd exits and returns a DOS ERRORLEVEL value when an error occurs. The value that is returned to the DOS ERRORLEVEL variable is 1 when the SQL Server error message has a severity level greater than 10; otherwise, the value returned is 0. If the -V option has been set in addition to -b, sqlcmd will not report an error if the severity level is lower than the values set using -V. Command prompt batch files can test the value of ERRORLEVEL and handle the error appropriately. sqlcmd does not report errors for severity level 10 (informational messages).
+If the sqlcmd script contains an incorrect comment, syntax error, or is missing a scripting variable, ERRORLEVEL returned is 1.
+
+-m error_level
+Controls which error messages are sent to stdout. Messages that have a severity level greater than or equal to this level are sent. When this value is set to -1, all messages including informational messages, are sent. Spaces are not allowed between the -m and -1. For example, -m-1 is valid, and -m -1 is not.
+This option also sets the sqlcmd scripting variable SQLCMDERRORLEVEL. This variable has a default of 0.
+
+-V error_severity_level
+Controls the severity level that is used to set the ERRORLEVEL variable. Error messages that have severity levels greater than or equal to this value set ERRORLEVEL. Values that are less than 0 are reported as 0. Batch and CMD files can be used to test the value of the ERRORLEVEL variable.
+
+
+---------------------------------------------------
+SELECT @@SERVERNAME AS [ServerName], DB_NAME() AS [DatabaseName], ORIGINAL_LOGIN() AS [Login];
+
+
+Use sqlcmd with Scripting Variables ( https://msdn.microsoft.com/en-us/library/ms188714.aspx )
