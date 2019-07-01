@@ -34,7 +34,10 @@ namespace SimpleSqlExec
                 Debug("Using passed-in ConnectionString.");
                 _ConnectionString = new SqlConnectionStringBuilder(InputParams.ConnectionString);
                 _ConnectionString.Pooling = false; // override just in case it was passed in
-                _ConnectionString.ContextConnection = false; // override just in case it was passed in
+
+                // ContextConnection is not relevant in this context, according to this issue:
+                // https://github.com/dotnet/SqlClient/issues/73#issuecomment-319832698
+                //_ConnectionString.ContextConnection = false; // override just in case it was passed in
 
                 return _ConnectionString.ConnectionString;
             }
