@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSqlExec", "SimpleSqlExec\SimpleSqlExec.csproj", "{4C85BAD3-2DB7-4E88-9DD9-9D3CCB3E2293}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSqlExec.Core", "SimpleSqlExec.Core\SimpleSqlExec.Core.csproj", "{AB51363E-727F-4C43-A788-FB5EDF48FF32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{4C85BAD3-2DB7-4E88-9DD9-9D3CCB3E2293}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C85BAD3-2DB7-4E88-9DD9-9D3CCB3E2293}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C85BAD3-2DB7-4E88-9DD9-9D3CCB3E2293}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB51363E-727F-4C43-A788-FB5EDF48FF32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB51363E-727F-4C43-A788-FB5EDF48FF32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB51363E-727F-4C43-A788-FB5EDF48FF32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB51363E-727F-4C43-A788-FB5EDF48FF32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {53ECFFD0-66F0-449D-BD1C-BB18AD318E98}
 	EndGlobalSection
 EndGlobal
